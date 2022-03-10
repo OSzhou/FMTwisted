@@ -1,0 +1,16 @@
+PODS:
+  - Twisted (0.1.0)
+
+DEPENDENCIES:
+  - Twisted (from `../`)
+
+EXTERNAL SOURCES:
+  Twisted:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  Twisted: 7381090b14dc96ce94ef71e5c79b3c481fea4d74
+
+PODFILE CHECKSUM: 0ac54231f494eba7654db96a796ca0c39d47dcca
+
+COCOAPODS: 1.10.2

@@ -1,5 +1,5 @@
 PODS:
-  - Twisted (0.1.0)
+  - Twisted (1.0.0-rc.1)
 
 DEPENDENCIES:
   - Twisted (from `../`)
@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  Twisted: 7381090b14dc96ce94ef71e5c79b3c481fea4d74
+  Twisted: c7a89309611e6afcd608a7dd60fa6d7dcbb8e537
 
 PODFILE CHECKSUM: 0ac54231f494eba7654db96a796ca0c39d47dcca
 

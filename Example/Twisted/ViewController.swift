@@ -10,7 +10,8 @@ import UIKit
 import Twisted
 
 class ViewController: UIViewController {
-
+    private var centerRect: CGRect = .zero
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -23,8 +24,8 @@ class ViewController: UIViewController {
         
         let vH = 9 / 16 * w
         
-        let bW: CGFloat = 150
-        let bH: CGFloat = 150
+        let bW: CGFloat = 100
+        let bH: CGFloat = 100
         
         let imgView = UIImageView(image: UIImage(named: "videoTest"))
         imgView.frame = CGRect(x: 0, y: 0, width: w, height: h)
@@ -60,17 +61,17 @@ class ViewController: UIViewController {
         
         let x4: CGFloat = (w - bW) / 2
         let y4: CGFloat = (h - bH) / 2
-        
-        let test4 = UIView(frame: CGRect(x: x4, y: y4, width: bW, height: bH))
+        centerRect = CGRect(x: x4, y: y4, width: bW, height: bH)
+        let test4 = UIView(frame: centerRect)
         test4.backgroundColor = .purple
         view.addSubview(test4)
     }
     
     private func pixelAnalysis() {
         let finder = PixelFinder()
-        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: CGRect(x: 490, y: 350, width: 150, height: 150)) else { return }
+        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: centerRect) else { return }
 //        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: UIScreen.main.bounds) else { return }
-        finder.searchEveryPixel(cgImage: cgImg, color: .black, percent: 0.90, tolerance: 5) { result in
+        finder.searchEveryPixel(cgImage: cgImg, color: .black, percent: 0.90, tolerance: 5, openOpt: false) { result in
             switch result {
             case .success(let flag):
                 print("sImage --- \(cgImg), result --- \(flag)")
@@ -82,6 +83,7 @@ class ViewController: UIViewController {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         pixelAnalysis()
+
     }
     
     override func didReceiveMemoryWarning() {

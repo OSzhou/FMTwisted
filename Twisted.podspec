@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Twisted'
-  s.version          = '1.0.0-rc.1'
+  s.version          = '1.0.0'
   s.summary          = 'A short description of Twisted.'
 
 # This description is used to generate tags and improve search results.

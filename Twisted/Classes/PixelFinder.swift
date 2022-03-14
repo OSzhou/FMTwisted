@@ -57,8 +57,6 @@ public enum PixelResult<Value> {
 
 public class PixelFinder: NSObject {
     public typealias handler = (PixelResult<Bool>) -> Void
-    var zipScale: CGFloat = 1.0
-    
     /// -----截取当前屏幕全屏-----
     public func snapshotCurrentFullScreen() -> UIImage? {
         // 判断是否为retina屏, 即retina屏绘图时有放大因子
@@ -129,25 +127,35 @@ public class PixelFinder: NSObject {
     
     // 遍历像素点
     
-    public func searchEveryPixel(image: UIImage, color: UIColor, percent: CGFloat = 0.95, tolerance: UInt8 = 0, result: @escaping handler) {
+    /// - Parameters:
+    ///   - image: 要检测的图片
+    ///   - color: 目标颜色 UIColor 或 r, g, b值
+    ///   - percent: 目标颜色占比预值
+    ///   - tolerance: 颜色上下波动容忍度
+    ///   - openOpt: 是否开启优化,
+    ///   - result: 目标颜色占比是否超出预值
+    public func searchEveryPixel(image: UIImage, color: UIColor, percent: CGFloat = 0.95, tolerance: UInt8 = 0, openOpt: Bool = false, result: @escaping handler) {
         let rgba = color.iNeedRGBA()
-        searchEveryPixel(cgImage: image.cgImage, r: rgba.r, g: rgba.g, b: rgba.b, percent: percent, tolerance: tolerance, result: result)
+        searchEveryPixel(cgImage: image.cgImage, r: rgba.r, g: rgba.g, b: rgba.b, percent: percent, tolerance: tolerance, openOpt: openOpt, result: result)
     }
     
-    public func searchEveryPixel(image: UIImage, r: UInt8, g: UInt8, b: UInt8, percent: CGFloat = 0.95, tolerance: UInt8 = 0, result: @escaping handler) {
-        searchEveryPixel(cgImage: image.cgImage, r: r, g: g, b: b, percent: percent, tolerance: tolerance, result: result)
+    public func searchEveryPixel(image: UIImage, r: UInt8, g: UInt8, b: UInt8, percent: CGFloat = 0.95, tolerance: UInt8 = 0, openOpt: Bool = false, result: @escaping handler) {
+        searchEveryPixel(cgImage: image.cgImage, r: r, g: g, b: b, percent: percent, tolerance: tolerance, openOpt: openOpt, result: result)
     }
     
-    public func searchEveryPixel(cgImage: CGImage?, color: UIColor, percent: CGFloat = 0.95, tolerance: UInt8 = 0, result: @escaping handler) {
+    public func searchEveryPixel(cgImage: CGImage?, color: UIColor, percent: CGFloat = 0.95, tolerance: UInt8 = 0, openOpt: Bool = false, result: @escaping handler) {
         let rgba = color.iNeedRGBA()
-        searchEveryPixel(cgImage: cgImage, r: rgba.r, g: rgba.g, b: rgba.b, percent: percent, tolerance: tolerance, result: result)
+        searchEveryPixel(cgImage: cgImage, r: rgba.r, g: rgba.g, b: rgba.b, percent: percent, tolerance: tolerance, openOpt: openOpt, result: result)
     }
     
-    public func searchEveryPixel(cgImage: CGImage?, r: UInt8, g: UInt8, b: UInt8, percent: CGFloat = 0.95, tolerance: UInt8 = 0, result: @escaping handler) {
-        guard let cgImg = cgImage else {
+    public func searchEveryPixel(cgImage: CGImage?, r: UInt8, g: UInt8, b: UInt8, percent: CGFloat = 0.95, tolerance: UInt8 = 0, openOpt: Bool = false, result: @escaping handler) {
+        guard let curCGImg = cgImage else {
             result(.failure("cgImage is nil !!!"))
             return
         }
+        
+        let cgImg = openOpt ? imageOpt(curCGImg) : curCGImg
+        
         DispatchQueue.global().async {
             let width = cgImg.width
             let height = cgImg.height
@@ -175,9 +183,14 @@ public class PixelFinder: NSObject {
             var targetCount = 0
             var totalCount = 0
             
-            for j in 0 ..< height {
-                for i in 0 ..< width {
-                    let pt = buffer + j * bytesPerRow + i * (bitsPerPixel / 8)
+            let scale = Int(UIScreen.main.scale)
+            let hCount = openOpt ? height / scale : height
+            let wCount = openOpt ? width / scale : width
+            let factor = openOpt ? scale : 1
+            
+            for j in 0 ..< hCount {
+                for i in 0 ..< wCount {
+                    let pt = buffer + j * factor * bytesPerRow + i * factor * (bitsPerPixel / 8)
                     let red   = pt
                     let green = pt + 1
                     let blue  = pt + 2
@@ -209,6 +222,16 @@ public class PixelFinder: NSObject {
         }
     }
     
+    private func imageOpt(_ cgImg: CGImage) -> CGImage {
+        guard cgImg.width > 300 else { return cgImg }
+        let scale = 300.0 / CGFloat(cgImg.width)
+        if scale < 0.2 {
+            return scaleImage(image: UIImage(cgImage: cgImg)) ?? cgImg
+        } else {
+            return scaleImage(image: UIImage(cgImage: cgImg), scale: scale) ?? cgImg
+        }
+    }
+    
     private func targetRange(_ base: UInt8, tolerance: UInt8) -> (l: UInt8, r: UInt8) {
         let left = tolerance > base ? 0 : base - tolerance
         let right = base + tolerance
@@ -216,18 +239,17 @@ public class PixelFinder: NSObject {
     }
     
     /// 缩放图片
-    func scaleImage(image: UIImage) -> UIImage {
-        let scale = zipScale
+    func scaleImage(image: UIImage, scale: CGFloat = 0.2) -> CGImage? {
         var newsize: CGSize = .zero
-        newsize.width = floor(image.size.width * scale)
-        newsize.height = floor(image.size.height * scale)
+        newsize.width = floor(image.size.width * scale / UIScreen.main.scale)
+        newsize.height = floor(image.size.height * scale / UIScreen.main.scale)
         if #available(iOS 10.0, *) {
             let render = UIGraphicsImageRenderer(size: newsize)
             return render.image { rtc in
                 image.draw(in: CGRect(x: 0, y: 0, width: newsize.width, height: newsize.height))
-            }
+            }.cgImage
         }else{
-            return image
+            return image.cgImage
         }
     }
     
@@ -274,6 +296,8 @@ extension UIImage {
         return resultImage
     }
 }
+
+// MARK: - 参考资料
 
 /*
  1.截取当前屏幕全屏的实现方法

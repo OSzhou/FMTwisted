@@ -81,6 +81,7 @@ public class PixelFinder: NSObject {
     
     /// -----截取屏幕指定区域view-----
     public func snapshotScreenInView(contentView: UIView, targetRect: CGRect? = nil) -> CGImage? {
+        guard contentView.superview != nil else { return nil }
         let targetBounds = targetRect ?? contentView.bounds
         let renderer = UIGraphicsImageRenderer(bounds: targetBounds)
 

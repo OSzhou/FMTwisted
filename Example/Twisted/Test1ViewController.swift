@@ -1,20 +1,23 @@
 //
-//  ViewController.swift
-//  Twisted
+//  Test1ViewController.swift
+//  Twisted_Example
 //
-//  Created by Zhouheng on 03/10/2022.
-//  Copyright (c) 2022 Zhouheng. All rights reserved.
+//  Created by Zh on 2022/3/26.
+//  Copyright © 2022 CocoaPods. All rights reserved.
 //
 
 import UIKit
 import Twisted
 
-class ViewController: UIViewController {
+class Test1ViewController: UIViewController {
+    private var timer: Timer!
     private var centerRect: CGRect = .zero
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        // Do any additional setup after loading the view.
+        view.backgroundColor = .cyan
         configUI()
     }
 
@@ -65,14 +68,19 @@ class ViewController: UIViewController {
         let test4 = UIView(frame: centerRect)
         test4.backgroundColor = .purple
         view.addSubview(test4)
+        
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(timerAction), userInfo: nil, repeats: true)
+        timer.fire()
+    }
+    
+    @objc private func timerAction() {
+        print("test timer --- ")
+        pixelAnalysis()
     }
     
     private func pixelAnalysis() {
         let finder = PixelFinder()
-        let v = UIView(frame: CGRect(x: 0, y: 0, width: 500, height: 500))
-        let v1 = UIView(frame: CGRect(x: 0, y: 0, width: 500, height: 500))
-        v.addSubview(v1)
-        guard let cgImg = finder.snapshotScreenInView(contentView: v, targetRect: centerRect) else { return }
+        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: centerRect) else { return }
 //        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: UIScreen.main.bounds) else { return }
         finder.searchEveryPixel(cgImage: cgImg, color: .black, percent: 0.90, tolerance: 5, openOpt: false) { result in
             switch result {
@@ -86,12 +94,15 @@ class ViewController: UIViewController {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         pixelAnalysis()
-//        navigationController?.pushViewController(Test1ViewController(), animated: true)
+
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-}
 
+    deinit {
+        print("Test1ViewController --- deinit")
+    }
+}

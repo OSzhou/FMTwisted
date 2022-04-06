@@ -72,12 +72,13 @@ class ViewController: UIViewController {
         let v = UIView(frame: CGRect(x: 0, y: 0, width: 500, height: 500))
         let v1 = UIView(frame: CGRect(x: 0, y: 0, width: 500, height: 500))
         v.addSubview(v1)
-        guard let cgImg = finder.snapshotScreenInView(contentView: v, targetRect: centerRect) else { return }
+        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: CGRect(x: 100, y: 100, width: 300, height: 300)) else { return }
 //        guard let cgImg = finder.snapshotScreenInView(contentView: view, targetRect: UIScreen.main.bounds) else { return }
         finder.searchEveryPixel(cgImage: cgImg, color: .black, percent: 0.90, tolerance: 5, openOpt: false) { result in
             switch result {
             case .success(let flag):
-                print("sImage --- \(cgImg), result --- \(flag)")
+//                print("sImage --- \(cgImg), result --- \(flag)")
+                break
             case .failure(let errMsg):
                 print("pixel analysis failure: \(errMsg)")
             }

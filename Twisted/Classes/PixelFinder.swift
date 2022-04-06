@@ -86,7 +86,8 @@ public class PixelFinder: NSObject {
         let renderer = UIGraphicsImageRenderer(bounds: targetBounds)
 
         let imgData = renderer.pngData { ctx in
-            contentView.drawHierarchy(in: contentView.bounds, afterScreenUpdates: true)
+            if contentView.superview == nil { return }
+            contentView.drawHierarchy(in: contentView.bounds, afterScreenUpdates: false)
         }
         guard let provider = CGDataProvider(data: imgData as CFData) else { return nil }
         guard let cgImg = CGImage(pngDataProviderSource: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent) else { return nil}
